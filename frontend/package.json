@@ -43,6 +43,7 @@
     "@trustwallet/aptos-wallet-adapter": "^0.1.6",
     "@wallet-standard/core": "^1.1.0",
     "antd": "^5.1.2",
+    "bn.js": "^5.2.2",
     "bs58": "^6.0.0",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.1",
