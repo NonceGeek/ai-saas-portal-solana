@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useProgram } from "./hooks/useProgram";
 import { useTransactionToast } from "./hooks/useTransactionToast";
-
+import { SystemProgram, PublicKey } from "@solana/web3.js";
+import BN from "bn.js";
 /**
  * IncrementButton component that handles its own transaction logic
  * for incrementing the counter.
@@ -27,15 +28,27 @@ export function TaskConfirm() {
   // Handle increment button click
   const confirmTask = async () => {
     if (!publicKey) return;
+    // 生成 PDA
+    const [taskPDA] = await PublicKey.findProgramAddress(
+      [Buffer.from("task"), new BN(70).toArrayLike(Buffer, "le", 8)],
+      SystemProgram.programId
+    );
+    const [configPDA] = await PublicKey.findProgramAddress(
+      [Buffer.from("config")],
+      SystemProgram.programId
+    );
 
     try {
       setIsLoading(true);
-
+      const task_id = 70;
       // Send the transaction
       const txSignature = await program.methods
-        .confirmTask()
+        .confirmTask({ task_id })
         .accounts({
           payer: publicKey,
+          task: taskPDA, // 自动匹配账户名和类型
+          config: configPDA,
+          systemProgram: SystemProgram.programId,
         })
         .rpc();
 
