@@ -7,7 +7,7 @@ import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 const BalanceWrapper = () => {
   const { publicKey } = useWallet(); // Assuming you have a wallet context or hook to get the public key
   const [balance, setBalance] = React.useState<number | null>(null);
-  const connection = new Connection("https://api.devnet.solana.com");
+  const connection = new Connection("https://devnet.helius-rpc.com/?api-key=2d246b4f-690d-4120-ae9f-504e61051b5c");
 
   useEffect(() => {
     const fetchBalance = async () => {
