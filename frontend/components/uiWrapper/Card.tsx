@@ -2,25 +2,22 @@
 import { styled } from "@mui/material/styles";
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
-import Button from "@mui/material/Button";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import CardActions from "@mui/material/CardActions";
 import Collapse from "@mui/material/Collapse";
 import Avatar from "@mui/material/Avatar";
+import Link from "@mui/material/Link";
 import IconButton, { IconButtonProps } from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import { red, pink } from "@mui/material/colors";
+import { red, blue } from "@mui/material/colors";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ShareIcon from "@mui/icons-material/Share";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import ReactMarkdown from "react-markdown";
-import { TaskConfirm } from "../task/taskConfirm";
-
-function MarkdownRenderer({ markdown }: any) {
-  return <ReactMarkdown>{markdown}</ReactMarkdown>;
-}
+import { DID_ROOTMUD_URL } from "@/lib/utils/constants";
+import { TaskConfirm } from "@/components/task/taskConfirm";
+import { Claim } from "@/components/task/claim";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -76,15 +73,14 @@ function CompletedCard(card: CompletedCardProps) {
       sx={{
         maxWidth: {
           xs: 350,
-          md: 600,
-          lg: 800,
-          xl: 900,
+          md: 400,
+          lg: 600,
         },
       }}
     >
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: pink[300] }} aria-label="recipe">
+          <Avatar sx={{ bgcolor: blue[300] }} aria-label="recipe">
             {card.task_type}
           </Avatar>
         }
@@ -94,27 +90,9 @@ function CompletedCard(card: CompletedCardProps) {
           </IconButton>
         }
         title={`ID: ${card.id}`}
-        subheader={
-          <>
-            <p>{new Date(card.created_at).toLocaleDateString()}</p>
-            <div className="w-[12px] h-[12px] bg-green-500 rounded-full inline-block"></div>
-            <span style={{ fontSize: 12 }} className="t pl-1">
-              Resolved task
-            </span>
-          </>
-        }
+        subheader={new Date(card?.created_at).toLocaleDateString()}
       />
-      <Typography
-        variant="body2"
-        sx={{
-          minHeight: 48,
-          padding: 2,
-          fontSize: 16,
-          color: "text.secondary",
-        }}
-      >
-        Task: {card.prompt}
-      </Typography>
+
       {card.solution?.startsWith("data:image/png") ||
       card.solution?.startsWith("https://p.ipic.vip") ? (
         <CardMedia
@@ -128,11 +106,17 @@ function CompletedCard(card: CompletedCardProps) {
           variant="body2"
           sx={{ fontSize: 14, padding: 2, mt: 1, color: "text.primary" }}
         >
-          Solution: <MarkdownRenderer markdown={card.solution} />
+          Solution: {card.solution}
         </Typography>
       )}
 
       <CardContent>
+        <Typography
+          variant="body2"
+          sx={{ minHeight: 48, fontSize: 16, color: "text.secondary" }}
+        >
+          Task: {card.prompt}
+        </Typography>
         <Typography
           variant="body2"
           sx={{ fontSize: 14, mt: 1, color: "text.secondary" }}
@@ -141,13 +125,13 @@ function CompletedCard(card: CompletedCardProps) {
         </Typography>
         <Typography
           variant="body2"
-          sx={{ fontSize: 12, mt: 1, color: pink[300] }}
+          sx={{ fontSize: 12, mt: 1, color: blue[300] }}
         >
           Fee: {card.fee} {card.fee_unit}
         </Typography>
-        {card.isNeedConfirmation && <TaskConfirm />}
+        <TaskConfirm />
+        <Claim />
       </CardContent>
-
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
           <FavoriteIcon />
@@ -215,15 +199,16 @@ function CompletedCard(card: CompletedCardProps) {
 }
 
 type AgentCardProps = {
-  id: string;
-  description: string;
-  type: string;
-  addr: string;
-  owner_addr: string;
-  source_url: string;
+  description?: string;
+  type?: string;
+  addr?: any;
+  owner_addr?: any;
+  source_url?: string;
   solved_times?: string;
   created_at?: any;
   unique_id?: string;
+  chat_url?: string;
+  assignTaskDom?: any;
 };
 
 function AIAgentCard(agent: AgentCardProps) {
@@ -237,7 +222,7 @@ function AIAgentCard(agent: AgentCardProps) {
     <Card>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: pink[300] }} aria-label="recipe">
+          <Avatar sx={{ bgcolor: blue[700] }} aria-label="recipe">
             {agent.type}
           </Avatar>
         }
@@ -246,10 +231,8 @@ function AIAgentCard(agent: AgentCardProps) {
             <MoreVertIcon />
           </IconButton>
         }
-        title={`ID: ${agent.id}`}
         subheader={
           <>
-            <p>{new Date(agent.created_at).toLocaleDateString()}</p>
             <div className="w-[12px] h-[12px] bg-sky-600 rounded-full inline-block"></div>
             <span style={{ fontSize: 12 }} className="t pl-1">
               AI agent
@@ -260,7 +243,7 @@ function AIAgentCard(agent: AgentCardProps) {
       <CardContent>
         <Typography
           variant="body2"
-          sx={{ minHeight: 70, fontSize: 16, color: "text.secondary" }}
+          sx={{ minHeight: 100, fontSize: 16, color: "text.secondary" }}
         >
           <span className="truncate-2-lines">
             Description: {agent.description}
@@ -271,6 +254,25 @@ function AIAgentCard(agent: AgentCardProps) {
           sx={{ fontSize: 12, mt: 1, color: "text.secondary" }}
         >
           Address: {agent?.addr?.slice(0, 6)}...{agent?.addr?.slice(-4)}
+          <p>
+            <Link
+              component="button"
+              variant="body2"
+              onClick={() => navigator.clipboard.writeText(agent?.addr)}
+            >
+              Copy
+            </Link>
+            <Link
+              style={{ marginLeft: 8 }}
+              variant="body2"
+              component="button"
+              onClick={() =>
+                window.open(`${DID_ROOTMUD_URL}?addr=${agent.addr}`, "_blank")
+              }
+            >
+              View DID
+            </Link>
+          </p>
         </Typography>
         <Typography
           variant="body2"
@@ -279,8 +281,20 @@ function AIAgentCard(agent: AgentCardProps) {
           Owner: {agent?.owner_addr?.slice(0, 6)}...
           {agent?.owner_addr?.slice(-4)}
         </Typography>
-        <Typography variant="body2" sx={{ fontSize: 12, color: pink[300] }}>
-          Solved Times:{agent.solved_times}
+        <Typography
+          variant="body2"
+          sx={{ fontSize: 12, color: "text.secondary" }}
+        >
+          Homepage:{" "}
+          <Link href={agent.chat_url} variant="body2">
+            Chat with!
+          </Link>
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ fontSize: 12, color: "text.secondary" }}
+        >
+          {agent.assignTaskDom}
         </Typography>
       </CardContent>
       <CardActions disableSpacing>
@@ -301,16 +315,6 @@ function AIAgentCard(agent: AgentCardProps) {
           <Typography
             sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
           >
-            ID:{agent.id}
-          </Typography>
-          <Typography
-            sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
-          >
-            {/* User: {agent.user.slice(0, 6) + "..." + agent.user.slice(-4)} */}
-          </Typography>
-          <Typography
-            sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
-          >
             Description: {agent.description}
           </Typography>
           <Typography
@@ -324,7 +328,7 @@ function AIAgentCard(agent: AgentCardProps) {
           >
             Address: {agent?.addr?.slice(0, 6)}...{agent?.addr?.slice(-4)}
             <button
-              onClick={() => navigator.clipboard.writeText(agent.addr)}
+              onClick={() => navigator.clipboard.writeText(agent?.addr)}
               className="ml-2 text-blue-500 hover:underline"
             >
               Copy
@@ -342,21 +346,6 @@ function AIAgentCard(agent: AgentCardProps) {
             >
               Copy
             </button>
-          </Typography>
-          <Typography
-            sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
-          >
-            Source: {agent.source_url}
-          </Typography>
-          <Typography
-            sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
-          >
-            Solved Times: {agent.solved_times}
-          </Typography>
-          <Typography
-            sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
-          >
-            Created At: {agent.created_at}
           </Typography>
           <Typography
             sx={{ marginBottom: 1, color: "text.secondary", fontSize: 14 }}
@@ -393,7 +382,7 @@ function PendingCard(card: CardProps) {
     <Card>
       <CardHeader
         avatar={
-          <Avatar sx={{ bgcolor: pink[300] }} aria-label="recipe">
+          <Avatar sx={{ bgcolor: blue[700] }} aria-label="recipe">
             {card.task_type}
           </Avatar>
         }
@@ -406,14 +395,14 @@ function PendingCard(card: CardProps) {
         subheader={
           <>
             <p>{new Date(card.created_at).toLocaleDateString()}</p>
-            <div className="w-[12px] h-[12px] bg-rose-500 rounded-full inline-block"></div>
+            <div className="w-[12px] h-[12px] rounded-full inline-block"></div>
             <span style={{ fontSize: 12 }} className="t pl-1">
               Unsolved task
             </span>
           </>
         }
       />
-      <CardContent>
+      <CardContent className="">
         <Typography
           variant="body2"
           sx={{ minHeight: 48, fontSize: 16, color: "text.secondary" }}
@@ -428,7 +417,7 @@ function PendingCard(card: CardProps) {
         </Typography>
         <Typography
           variant="body2"
-          sx={{ fontSize: 12, mt: 1, color: pink[300] }}
+          sx={{ fontSize: 12, mt: 1, color: blue[700] }}
         >
           Fee: {card.fee} {card.fee_unit}
         </Typography>

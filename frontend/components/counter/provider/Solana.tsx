@@ -21,8 +21,8 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   const network = WalletAdapterNetwork.Devnet;
 
   // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
-
+  // const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => "https://devnet.helius-rpc.com/?api-key=2d246b4f-690d-4120-ae9f-504e61051b5c", [network]);
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={[]} autoConnect>
@@ -30,4 +30,4 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
       </WalletProvider>
     </ConnectionProvider>
   );
-};
+};  

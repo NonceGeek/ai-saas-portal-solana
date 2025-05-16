@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { CompletedCard } from "../uiWrapper/Card";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { TaskInit } from "@/components/task/taskInit";
 
 const TasksContainer = () => {
   const { wallet, connected } = useWallet();
@@ -41,13 +42,13 @@ const TasksContainer = () => {
 
     fetchTasks();
     fetchAgents();
-  }, [connected, address]);
+  }, [address]);
 
   return (
     <div className="w-[100%] sm:w-[100%] md:w-[90%] lg:w-[80%] overflow-y-auto flex flex-col items-center gap-4 p-0 lg:p-4">
       {/* Header section for agent and task status */}
       <div className="w-full flex-shrink-0 p-4 mb-2 lg:mb-10"></div>
-
+      {/* <TaskInit /> */}
       <h3 className="text-3xl font-semibold mb-4">Your Tasks</h3>
 
       <div className="columns-1 gap-4 space-y-4">

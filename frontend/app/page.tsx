@@ -3,25 +3,21 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Button from "@mui/material/Button";
-import {
-  Connection,
-  Keypair,
-  SystemProgram,
-  Transaction,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js";
-import bs58 from "bs58";
+
+import * as anchor from "@coral-xyz/anchor";
+import { SystemProgram, PublicKey } from "@solana/web3.js";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { ToastContainer, toast } from "react-toastify";
+import { useProgram } from "@/components/task/hooks/useProgram";
 import "react-toastify/dist/ReactToastify.css";
-import { PendingCard, AIAgentCard } from "../uiWrapper/Card";
+import { PendingCard, AIAgentCard } from "@/components/uiWrapper/Card";
 import { DID_ROOTMUD_URL } from "../lib/utils/constants";
 import { NavBar } from "@/components/NavBar";
 import { WalletButton } from "@/components/counter/WalletButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import BalanceWrapper from "@/hooks/useBanlance";
-import { TaskConfirm } from "@/components/task/taskConfirm";
+import { TaskInit } from "@/components/task/taskInit";
 
 export default function Home() {
   // <!-- things about tasks
@@ -44,6 +40,32 @@ export default function Home() {
   const [taskRequestApi, setTaskRequestApi] = useState("");
 
   const [taskId, setTaskId] = useState("");
+  const { program } = useProgram();
+
+  const publicKey = wallet?.adapter?.publicKey;
+
+  const completeTaskContract = async (taskId: any) => {
+    const tId = new anchor.BN(taskId);
+    const [taskPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("task"), tId.toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+    try {
+      await program.account.task.fetch(taskPda);
+    } catch (e) {
+      console.log("Task account doesn't exist, creating it first...");
+      await program.methods
+        .completeTask({
+          taskId: tId,
+          taskName: "Test Task",
+          taskDescription: "This is a test task description",
+        })
+        .accounts({
+          payer: publicKey?.toString(),
+        })
+        .rpc();
+    }
+  };
 
   // Add this useEffect after other useEffect declarations
   useEffect(() => {
@@ -70,11 +92,6 @@ export default function Home() {
     fetchTasks();
     fetchAgents();
   }, []);
-
-  // 谁去做记录
-  // 奖励币是什么
-  // agent的任务请求api是什么
-  // 验证证明
 
   const handleSubmitTask = async (address: string) => {
     try {
@@ -118,7 +135,9 @@ export default function Home() {
   // Add this function near other async functions
   const assignTaskToAgent = async (taskId: string, taskRequestApi: string) => {
     try {
-      const response = await fetch(taskRequestApi + "?task_id=" + taskId);
+      const response = await fetch(
+        taskRequestApi + "?task_id=" + taskId + "&chain=solana"
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,6 +162,7 @@ export default function Home() {
           (error instanceof Error ? error.message : "Unknown error")
       );
     }
+    completeTaskContract(taskId);
   };
 
   return (
@@ -186,13 +206,18 @@ export default function Home() {
       {/* TODO: copy the things in basicContainer to here */}
       <div className="w-full flex-shrink-0 mt-10">
         <center>
-          <h3 className="text-xl md:text-2xl font-semibold mb-4 mt-6">Your Solana Balance</h3>
+          <h3 className="text-xl md:text-2xl font-semibold mb-4 mt-6">
+            Your Solana Balance
+          </h3>
         </center>
         <BalanceWrapper />
+        {/* <TaskInit /> */}
       </div>
       <div className="w-full flex-shrink-0 mt-10">
         <center>
-          <h3 className="text-xl md:text-2xl font-semibold mb-4 mt-6">Data Panel</h3>
+          <h3 className="text-xl md:text-2xl font-semibold mb-4 mt-6">
+            Data Panel
+          </h3>
         </center>
         <div className="w-full grid grid-cols-3 gap-4 mb-4 mt-4 text-center">
           <Card className="bg-gradient-to-r from-blue-500/20 to-purple-500/15 rounded-md">

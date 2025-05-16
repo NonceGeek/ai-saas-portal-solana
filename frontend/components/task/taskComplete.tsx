@@ -8,7 +8,8 @@ import { toast } from "sonner";
 import { useProgram } from "./hooks/useProgram";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useTransactionToast } from "./hooks/useTransactionToast";
-import { PublicKey } from "@solana/web3.js";
+import { SystemProgram, PublicKey } from "@solana/web3.js";
+
 /**
  * IncrementButton component that handles its own transaction logic
  * for incrementing the counter.
@@ -16,7 +17,6 @@ import { PublicKey } from "@solana/web3.js";
 export function TaskConfirm() {
   // Get program and wallet information from the hook
   const { program, publicKey, connected } = useProgram();
-  // const testKeypair = Keypair.generate();
   const taskId = new anchor.BN(70);
   // Local state
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,6 @@ export function TaskConfirm() {
   // Handle increment button click
   const confirmTask = async () => {
     const publicKey = wallet?.adapter?.publicKey;
-
     if (!publicKey) return;
     // 生成 PDA
     const [taskPDA] = PublicKey.findProgramAddressSync(
@@ -44,56 +43,22 @@ export function TaskConfirm() {
     );
 
     // Create task if it doesn't exist yet
-    // try {
-    //   await program.account.task.fetch(taskPDA);
-    // } catch (e) {
-    //   console.log("Task account doesn't exist, creating it first...");
-    //   await program.methods
-    //     .completeTask({
-    //       taskId: taskId,
-    //       taskName: "Test Task",
-    //       taskDescription: "This is a test task description",
-    //     })
-    //     .accounts({
-    //       payer: publicKey,
-    //     })
-    //     .rpc();
-    // }
-
-    // Call the confirmTask instruction
-
-    const tx = await program.methods
-      .confirmTask({
-        taskId: taskId,
-        taskStatus: { confirmed: {} },
-        rewarder: publicKey,
-      })
-      .accounts({
-        payer: publicKey,
-        config: new PublicKey("Fsw4rC2yhi8aYgoDnptNf36YVHykTffrTrj7EAdu3Zza"),
-      })
-      .rpc();
-
-    console.log("Transaction signature:", tx);
-    setTransactionSignature(tx);
-
-    const taskAccount = await program.account.task.fetch(taskPDA);
-    console.log("Task confirmed successfully:", {
-      taskId: taskAccount.taskId.toString(),
-      taskStatus: "confirmed",
-      rewarder: taskAccount.rewarder.toString(),
-      taskName: taskAccount.taskName,
-      taskDescription: taskAccount.taskDescription,
-    });
-
-    await program.methods
-      .claimTask({
-        taskId: taskId,
-      })
-      .accounts({
-        payer: publicKey,
-      })
-      .rpc();
+    try {
+      await program.account.task.fetch(taskPDA);
+    } catch (e) {
+      console.log("Task account doesn't exist, creating it first...");
+      const tx1 = await program.methods
+        .completeTask({
+          taskId: taskId,
+          taskName: "Test Task",
+          taskDescription: "This is a test task description",
+        })
+        .accounts({
+          payer: publicKey,
+        })
+        .rpc();
+      setTransactionSignature(tx1);
+    }
   };
 
   return (
@@ -108,7 +73,7 @@ export function TaskConfirm() {
           <span>Processing...</span>
         </div>
       ) : (
-        "confirm Task"
+        "completed Task"
       )}
     </Button>
   );
